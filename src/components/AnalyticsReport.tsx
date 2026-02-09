@@ -31,7 +31,20 @@ export function AnalyticsReport() {
 
   if (!analytics) return null;
 
-  const { metadata, studentStats, classConsistency, masteryPercentage, subtopicOutcomes, aiInsights, summary } = analytics;
+  const { 
+    metadata, 
+    studentStats, 
+    classConsistency, 
+    masteryPercentage = 0, 
+    subtopicOutcomes, 
+    aiInsights, 
+    summary 
+  } = analytics;
+
+  // Ensure all array fields are actually arrays
+  const safeStudentStats = Array.isArray(studentStats) ? studentStats : [];
+  const safeSubtopicOutcomes = Array.isArray(subtopicOutcomes) ? subtopicOutcomes : [];
+  const safeAiInsights = Array.isArray(aiInsights) ? aiInsights : [];
 
   const formatDuration = (seconds?: number) => {
     if (!seconds) return 'N/A';
@@ -59,23 +72,23 @@ export function AnalyticsReport() {
           <SummaryCard 
             icon={<Users className="h-5 w-5" />}
             label="Students"
-            value={summary.totalStudents}
+            value={summary?.totalStudents || 0}
           />
           <SummaryCard 
             icon={<Target className="h-5 w-5" />}
             label="Questions"
-            value={summary.totalQuestions}
+            value={summary?.totalQuestions || 0}
           />
           <SummaryCard 
             icon={<CheckCircle2 className="h-5 w-5" />}
             label="Pass Rate"
-            value={`${summary.passRate.toFixed(0)}%`}
-            color={summary.passRate >= 70 ? 'success' : summary.passRate >= 40 ? 'warning' : 'error'}
+            value={`${(summary?.passRate || 0).toFixed(0)}%`}
+            color={(summary?.passRate || 0) >= 70 ? 'success' : (summary?.passRate || 0) >= 40 ? 'warning' : 'error'}
           />
           <SummaryCard 
             icon={<Clock className="h-5 w-5" />}
             label="Duration"
-            value={formatDuration(metadata.duration)}
+            value={formatDuration(metadata?.duration)}
           />
         </div>
 
@@ -93,7 +106,7 @@ export function AnalyticsReport() {
                   masteryPercentage >= 40 ? "text-performance-medium" :
                   "text-performance-low"
                 )}>
-                  {masteryPercentage.toFixed(0)}%
+                  {(masteryPercentage || 0).toFixed(0)}%
                 </span>
                 <div className="flex-1 h-3 bg-muted rounded-full overflow-hidden">
                   <div 
@@ -103,7 +116,7 @@ export function AnalyticsReport() {
                       masteryPercentage >= 40 ? "bg-performance-medium" :
                       "bg-performance-low"
                     )}
-                    style={{ width: `${masteryPercentage}%` }}
+                    style={{ width: `${masteryPercentage || 0}%` }}
                   />
                 </div>
               </div>
@@ -117,19 +130,19 @@ export function AnalyticsReport() {
             <CardContent>
               <div className="flex items-center justify-between">
                 <span className="text-4xl font-bold">
-                  {classConsistency.averageScore.toFixed(0)}%
+                  {(classConsistency?.averageScore || 0).toFixed(0)}%
                 </span>
                 <div className="flex gap-4">
                   <div className="text-center">
-                    <div className="text-xl font-bold text-performance-high">{classConsistency.distribution.high}</div>
+                    <div className="text-xl font-bold text-performance-high">{classConsistency?.distribution?.high || 0}</div>
                     <div className="text-xs text-muted-foreground">High</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-performance-medium">{classConsistency.distribution.medium}</div>
+                    <div className="text-xl font-bold text-performance-medium">{classConsistency?.distribution?.medium || 0}</div>
                     <div className="text-xs text-muted-foreground">Medium</div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl font-bold text-performance-low">{classConsistency.distribution.low}</div>
+                    <div className="text-xl font-bold text-performance-low">{classConsistency?.distribution?.low || 0}</div>
                     <div className="text-xs text-muted-foreground">Low</div>
                   </div>
                 </div>
@@ -148,7 +161,7 @@ export function AnalyticsReport() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {subtopicOutcomes.map((outcome, index) => (
+              {safeSubtopicOutcomes.map((outcome, index) => (
                 <div 
                   key={index}
                   className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
@@ -205,24 +218,24 @@ export function AnalyticsReport() {
                   </tr>
                 </thead>
                 <tbody>
-                  {studentStats.map((student, index) => (
+                  {safeStudentStats.map((student, index) => (
                     <tr key={index} className="border-b last:border-0">
                       <td className="py-2 px-3 font-medium">
-                        {student.name || `Student ${index + 1}`}
+                        {student?.name || `Student ${index + 1}`}
                       </td>
-                      <td className="py-2 px-3 text-center">{student.correctAnswers}</td>
-                      <td className="py-2 px-3 text-center">{student.totalQuestions}</td>
+                      <td className="py-2 px-3 text-center">{student?.correctAnswers || 0}</td>
+                      <td className="py-2 px-3 text-center">{student?.totalQuestions || 0}</td>
                       <td className="py-2 px-3 text-center font-mono text-sm">
-                        {formatTime(student.averageResponseTime)}
+                        {formatTime(student?.averageResponseTime || 0)}
                       </td>
                       <td className="py-2 px-3 text-center">
                         <Badge 
                           className={cn(
-                            getPerformanceBgColor(student.performance),
+                            getPerformanceBgColor(student?.performance || 'low'),
                             "text-white text-xs uppercase"
                           )}
                         >
-                          {student.performance}
+                          {student?.performance || 'N/A'}
                         </Badge>
                       </td>
                     </tr>
@@ -234,7 +247,7 @@ export function AnalyticsReport() {
         </Card>
 
         {/* AI Insights */}
-        {aiInsights && aiInsights.length > 0 && (
+        {safeAiInsights && safeAiInsights.length > 0 && (
           <Card className="border-0 shadow-card border-accent/20 bg-accent/5">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-accent">
@@ -244,7 +257,7 @@ export function AnalyticsReport() {
             </CardHeader>
             <CardContent>
               <ul className="space-y-2">
-                {aiInsights.map((insight, index) => (
+                {safeAiInsights.map((insight, index) => (
                   <li key={index} className="flex items-start gap-2">
                     <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-accent flex-shrink-0" />
                     <span>{insight}</span>

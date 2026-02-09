@@ -30,7 +30,7 @@ import { Badge } from './ui/badge';
 export function ResponseSimulator() {
   const { state } = useSession();
   const { submitResponses } = useSessionActions();
-  const { currentQuestion, isLoading } = state;
+  const { currentQuestion, isLoading, nextAction } = state;
   
   const [responses, setResponses] = useState<Map<string, StudentResponse>>(new Map());
   const [correctAnswer, setCorrectAnswer] = useState('');
@@ -44,7 +44,7 @@ export function ResponseSimulator() {
       setCorrectAnswer(defaultAnswer);
       setResponses(new Map());
     }
-  }, [currentQuestion?.questionId]);
+  }, [currentQuestion]);
 
   const getWrongOptions = () => {
     if (!currentQuestion?.options) return ['Wrong A', 'Wrong B', 'Wrong C'];
@@ -270,13 +270,13 @@ export function ResponseSimulator() {
         {/* Submit Button */}
         <Button
           onClick={handleSubmit}
-          disabled={isLoading || responses.size === 0}
+          disabled={isLoading || responses.size === 0 || !!nextAction}
           className="w-full h-12 text-base font-semibold gradient-primary hover:opacity-90 transition-opacity"
         >
-          {isLoading ? (
+          {isLoading || nextAction ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-              Submitting Responses...
+              {nextAction ? 'Processing...' : 'Submitting Responses...'}
             </>
           ) : (
             <>

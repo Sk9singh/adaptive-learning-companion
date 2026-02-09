@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { getDifficultyColor, getQuestionTypeColor, formatTime } from '@/utils/formatters';
 import { Clock, BookOpen, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LatexRenderer } from './LatexRenderer';
 
 export function QuestionDisplay() {
   const { state } = useSession();
@@ -117,7 +118,10 @@ export function QuestionDisplay() {
       <CardContent className="pt-0">
         {/* Question Text */}
         <div className="p-6 bg-muted/50 rounded-xl mb-4">
-          <p className="text-lg leading-relaxed">{currentQuestion.question}</p>
+          <LatexRenderer 
+            content={currentQuestion.question} 
+            className="text-lg leading-relaxed"
+          />
         </div>
 
         {/* Image if available */}
@@ -144,7 +148,10 @@ export function QuestionDisplay() {
                   <span className="font-semibold text-muted-foreground mr-2">
                     {String.fromCharCode(65 + index)}.
                   </span>
-                  {option}
+                  <LatexRenderer 
+                    content={option} 
+                    className="inline"
+                  />
                 </div>
               ))}
             </div>

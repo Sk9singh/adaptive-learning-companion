@@ -1,18 +1,22 @@
 import { useState } from 'react';
 import { useSessionActions } from '@/hooks/useSessionActions';
 import { sampleSessionData } from '@/types/agent.types';
+import { agentApi } from '@/services/agentApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import { Play, Loader2, X, Plus, BookOpen, GraduationCap, Users } from 'lucide-react';
+import { Play, Loader2, X, Plus, BookOpen, GraduationCap, Users, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function SessionForm() {
   const { startSession, state } = useSessionActions();
   const [formData, setFormData] = useState(sampleSessionData);
+  const [board, setBoard] = useState('CBSE');
   const [newSubtopic, setNewSubtopic] = useState('');
+  const [isGeneratingSubtopics, setIsGeneratingSubtopics] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,6 +46,37 @@ export function SessionForm() {
 
   const useSampleData = () => {
     setFormData(sampleSessionData);
+  };
+
+  const generateSubtopics = async () => {
+    // Validate required fields
+    if (!formData.classLevel || !formData.subject || !formData.chapter || !formData.topic) {
+      toast.error('Please fill in Class Level, Subject, Chapter, and Topic first');
+      return;
+    }
+
+    setIsGeneratingSubtopics(true);
+    try {
+      const result = await agentApi.generateSubtopics({
+        board,
+        classLevel: formData.classLevel,
+        subject: formData.subject,
+        chapter: formData.chapter,
+        topic: formData.topic,
+      });
+
+      setFormData(prev => ({
+        ...prev,
+        subtopics: result.subtopics,
+      }));
+
+      toast.success(`Generated ${result.subtopics.length} subtopics for "${result.mainTopic}"`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to generate subtopics';
+      toast.error(message);
+    } finally {
+      setIsGeneratingSubtopics(false);
+    }
   };
 
   return (
@@ -108,7 +143,17 @@ export function SessionForm() {
             </div>
 
             {/* Class Info Row */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="board">Board</Label>
+                <Input
+                  id="board"
+                  value={board}
+                  onChange={(e) => setBoard(e.target.value)}
+                  placeholder="e.g., CBSE, ICSE"
+                  required
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="classLevel">Class Level</Label>
                 <Input
@@ -169,12 +214,34 @@ export function SessionForm() {
 
             {/* Subtopics */}
             <div className="space-y-3">
-              <Label>Subtopics</Label>
+              <div className="flex items-center justify-between">
+                <Label>Subtopics</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={generateSubtopics}
+                  disabled={isGeneratingSubtopics || !formData.classLevel || !formData.subject || !formData.chapter || !formData.topic}
+                  className="gap-2"
+                >
+                  {isGeneratingSubtopics ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      Generate with AI
+                    </>
+                  )}
+                </Button>
+              </div>
               <div className="flex gap-2">
                 <Input
                   value={newSubtopic}
                   onChange={(e) => setNewSubtopic(e.target.value)}
-                  placeholder="Add a subtopic..."
+                  placeholder="Or add manually..."
                   onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addSubtopic())}
                 />
                 <Button 
@@ -205,7 +272,7 @@ export function SessionForm() {
                 ))}
                 {formData.subtopics.length === 0 && (
                   <p className="text-sm text-muted-foreground italic">
-                    At least one subtopic is required
+                    Click "Generate with AI" or add subtopics manually
                   </p>
                 )}
               </div>

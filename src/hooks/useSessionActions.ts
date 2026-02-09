@@ -12,6 +12,11 @@ export function useSessionActions() {
     
     try {
       const session = await agentApi.startSession(data);
+      
+      if (!session.sessionId) {
+        throw new Error('No session ID returned from server');
+      }
+      
       dispatch({
         type: 'START_SESSION',
         payload: {
