@@ -10,6 +10,7 @@ import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Play, Loader2, X, Plus, BookOpen, GraduationCap, Users, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { LoadingAnimation } from './LoadingAnimation';
 
 export function SessionForm() {
   const { startSession, state } = useSessionActions();
@@ -337,6 +338,11 @@ export function SessionForm() {
           </form>
         </CardContent>
       </Card>
+      
+      {/* Loading Animation */}
+      {state.isLoading && (
+        <LoadingAnimation message="Starting your quiz session..." />
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { ExplanationModal } from './ExplanationModal';
 import { InterventionScreen } from './InterventionScreen';
 import { FlowController } from './FlowController';
 import { AnalyticsReport } from './AnalyticsReport';
+import { LoadingAnimation } from './LoadingAnimation';
 import { Badge } from '@/components/ui/badge';
 import { GraduationCap } from 'lucide-react';
 
@@ -99,6 +100,16 @@ export function QuizDashboard() {
       {/* Modals */}
       <ExplanationModal />
       <InterventionScreen />
+      
+      {/* Loading Animation */}
+      {state.isLoading && (
+        <LoadingAnimation message={
+          state.nextAction === 'verification_question' ? 'Generating verification question...' :
+          state.nextAction === 'next_subtopic' ? 'Preparing next subtopic...' :
+          !state.currentQuestion ? 'Starting your quiz session...' :
+          'Loading...'
+        } />
+      )}
     </div>
   );
 }
